@@ -15,4 +15,4 @@ The repository is organized as follows:
 - `map_pre_old.py`: Map and agent-data preprocessing class
 
 
-![Model architecture and Training procedure](MA/arc.png_url)
+![Model architecture and Training procedure](MA/arc.png)
