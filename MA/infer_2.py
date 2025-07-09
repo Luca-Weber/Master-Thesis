@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
-# ... (Keep sigma_max, sigma_min, rho, N_inference_steps, device, get_T) ...
+
 sigma_max = 20
 sigma_min = 0.002
 rho = 7
@@ -208,7 +208,7 @@ def calculate_validation_loss_and_plot(
                 traceback.print_exc()
                 continue
 
-    # ... (Average loss calculation and return - unchanged) ...
+
     if total_valid_elements > 0:
         avg_loss = total_loss / total_valid_elements
     else:
