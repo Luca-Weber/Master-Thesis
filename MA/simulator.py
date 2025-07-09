@@ -271,57 +271,23 @@ def write_combined_xml(carla_map, all_left_boundaries, all_right_boundaries, pro
             output_time_integer = 1
             last_original_index = 0 # Start search from the first state *after* initial_state (states[0])
 
-            # We need to find matches for states AFTER the initial state.
-            # The first state in the <trajectory> element is for time step 1 (relative to initial state).
-            # So, states[0] is initialState, states[1] could be step 1 if timestamps align.
-
-            # Iterate through all original states starting from the second one (index 1)
-            # to find matches for our desired output time steps.
             for current_original_idx in range(1, len(states)):
                 current_state_data = states[current_original_idx]
-                # Check if this state is the best match for the current target_absolute_time
-                # target_absolute_time = start_time_abs + output_time_integer * time_step_output
-                # A simpler way: iterate through states and if a state is close to an integer multiple of time_step_output, use it.
 
-                # Revised logic for trajectory state selection:
-                # The loop for target_relative_time and output_time_integer is better.
-                # We need to ensure that the states we pick from `states` list are *after* the initial state.
-                # The original logic seems mostly fine but needs to start its search for trajectory points
-                # from `states[1]` onwards if `states[0]` is exclusively for `initialState`.
-                # The previous `while True` loop for trajectory building was correct. Let's ensure it uses states correctly.
-
-                # The `states` list ALREADY contains all recorded points.
-                # `initial_state_data = states[0]` uses the first recorded point for `initialState`.
-                # The trajectory then needs to find points for integer time steps 1, 2, 3...
-                # relative to this `start_time_abs`.
-
-                # This loop iterates for each desired output integer time step
-                # The previous `while True` loop for finding the best match for `target_absolute_time` is suitable.
-                # Let's re-insert that logic structure here.
                 pass # The original while loop for trajectory states seems correct.
 
-            # Re-instating the trajectory processing loop from the original script, it's well-suited
-            # It uses all_timestamps (derived from all states) and initial_state_data['timestamp']
-            # This means states[0] is implicitly handled as the reference for time 0.
-            # The loop then finds subsequent states.
+
 
             # --- Trajectory (States at integer time steps representing time_step_output intervals) ---
             # start_time_abs is from states[0]
             # all_timestamps is from all states[0...N-1]
             
-            # We need to find states that correspond to integer steps *after* the initial state.
-            # So, the search for the first trajectory point (output_time_integer=1) should
-            # look for a state around start_time_abs + 1 * time_step_output.
 
             target_relative_time = time_step_output # First target is time_step_output after initial state
             output_time_integer = 1             # Corresponds to <state time="1">
             # last_original_index should be 0, as states[0] is initial, we are looking for states for time > 0
             current_search_start_idx = 0 # Start search from the beginning of 'states' list for each target time.
-                                       # More efficient: advance search start index.
 
-            # Corrected trajectory state selection logic
-            # states[0] is the initial state (time=0 for CR XML)
-            # We need to find states for time=1, time=2, ...
             
             processed_state_timestamps_for_traj = set() # To avoid using the same raw state for multiple XML states
 
@@ -330,30 +296,7 @@ def write_combined_xml(carla_map, all_left_boundaries, all_right_boundaries, pro
             for i_output_step in range(1, int((states[-1]['timestamp'] - start_time_abs) / time_step_output) + 2): # Max possible steps
                 target_abs_time_for_step = start_time_abs + i_output_step * time_step_output
                 
-                # Find the best raw state for this target_abs_time_for_step
-                # Ensure we don't re-use states[0] for trajectory if it was used for initial state.
-                # Search in sim_timestamps_array[1:] if states[0] is exclusively initial.
-                # However, states[0] IS part of the time series.
 
-                # Find closest timestamp in the raw data
-                # We need to ensure that the found index is strictly greater than the index used for the previous step.
-                
-                # Simpler: Iterate through `states` starting from index 1
-                # This is more robust than the previous complex indexing.
-                
-                # The original loop was good:
-                # last_original_index = 0 # Start search from beginning of states array for each dynamic obstacle
-                # This index is into the `states` list for the current vehicle.
-                
-                # Let's use a clearer iteration based on output steps:
-                # Loop for each desired XML trajectory time step (1, 2, 3, ...)
-                
-                # The original provided loop for `target_relative_time` and `output_time_integer`
-                # is actually quite good at finding the nearest actual data point for each desired
-                # output interval. Let's stick to its structure.
-
-            # --- Using the original, robust trajectory sampling logic ---
-            # Reset for each vehicle
             current_search_idx_in_states = 0 # Index into this vehicle's 'states' list
             max_output_steps_for_vehicle = int((states[-1]['timestamp'] - start_time_abs) / time_step_output) + 5 # Safety margin
 
@@ -379,17 +322,8 @@ def write_combined_xml(carla_map, all_left_boundaries, all_right_boundaries, pro
                     if target_absolute_time > states[-1]['timestamp'] + time_step_output: # well past end of data
                          break
                     target_relative_time += time_step_output # Try for next time step
-                    # output_time_integer should not increment if we didn't write. This is handled by the original structure.
-                    # The original structure increments output_time_integer only when a state IS written.
-                    # This loop structure is slightly different.
-                    # Let's revert to the user's original trajectory loop structure which was sound.
-                    # My attempted simplification here is making it more complex.
-                    # The user's provided `while True` loop for `output_time_integer` and `target_relative_time`
-                    # correctly handles finding the *next available actual state* that is closest to the *next target time slot*.
-                    break # Exit this custom loop and rely on the fact the original script's trajectory loop is correct.
-            # END OF MY ATTEMPTED REWRITE OF TRAJECTORY LOOP PART.
-            # THE ORIGINAL SCRIPT'S TRAJECTORY SAMPLING LOGIC (while True loop using np.abs().argmin()) IS KEPT.
-            # The below is the user's original trajectory logic:
+
+                    break 
 
             start_time_abs_for_traj = states[0]['timestamp'] # This is time=0 in CR
             all_timestamps_for_traj = np.array([s['timestamp'] for s in states]) # Includes states[0]
@@ -403,8 +337,6 @@ def write_combined_xml(carla_map, all_left_boundaries, all_right_boundaries, pro
                 if current_raw_state_search_idx >= len(all_timestamps_for_traj):
                     break # No more raw states to search
 
-                # Find the raw state closest to the target_sim_time, searching forward from current_raw_state_search_idx
-                # This ensures that raw states are consumed in order and not re-used for different XML time steps.
                 remaining_timestamps = all_timestamps_for_traj[current_raw_state_search_idx:]
                 if remaining_timestamps.size == 0:
                     break
@@ -415,14 +347,7 @@ def write_combined_xml(carla_map, all_left_boundaries, all_right_boundaries, pro
                 
                 actual_sim_time_of_match = all_timestamps_for_traj[best_match_absolute_idx]
 
-                # If this best match is too far from our target sim time (e.g., > half a step),
-                # it means there's no good data point for this XML step.
-                # OR, if the matched sim time is *before* our target time significantly, and we expect it to be after.
-                # A key condition: the selected state must be chronologically appropriate for the current output_time_int.
-                # If the best match is closer to the *previous* XML time step's target, it shouldn't be used.
 
-                # Condition from original script: (time_diff < time_step_output) was generous.
-                # Let's use a slightly stricter condition: min difference should be less than half time_step_output
                 if time_diffs[best_match_relative_idx] > time_step_output * 0.55: # Allow a bit over 0.5 for edge cases
                     # No good data point for this `output_time_int`.
                     # Maybe advance `output_time_int` and try again?
@@ -653,44 +578,21 @@ if __name__ == "__main__":
                 if vehicle is not None:
                                     vehicle.set_autopilot(True, traffic_manager.get_port()) # Get TM port correctly
                                     
-                                    # --- MODIFICATION: Varied TM settings per vehicle (Corrected API) ---
+   
                                     traffic_manager.auto_lane_change(vehicle, True) # Enable auto lane change for this vehicle
                                     
                                     # Set desired distance to leading vehicle for this specific vehicle
                                     traffic_manager.distance_to_leading_vehicle(vehicle, random.uniform(2.5, 5.0))
                                     
-                                    # Set percentage speed difference for this specific vehicle
-                                    # Remember: positive means SLOWER, negative means FASTER
-                                    # We want -30% (faster) to +10% (slower) of speed limit.
-                                    # So, if random.uniform gives -30, we want 30% FASTER.
-                                    # If random.uniform gives +10, we want 10% SLOWER.
-                                    # The API expects:
-                                    #   - positive value X -> (100-X)% of speed limit (i.e., X% slower)
-                                    #   - negative value Y -> (100+|Y|)% of speed limit (i.e., |Y|% faster)
-                                    
-                                    # Let's define our desired deviation more clearly:
-                                    # e.g., we want speeds from 70% of speed limit (30% slower) to 110% of speed limit (10% faster)
-                                    # speed_deviation_percent = random.uniform(-10.0, 30.0) # -10 means 10% faster, +30 means 30% slower
-                                    
-                                    # If you want vehicles to drive between X% slower and Y% faster:
-                                    # X% slower: pass X to the function.
-                                    # Y% faster: pass -Y to the function.
 
-                                    # Your original intention: speed_diff_percent = random.uniform(-30.0, 10.0)
-                                    # This means you want some vehicles to be up to 30% FASTER (pass -30)
-                                    # and some vehicles to be up to 10% SLOWER (pass 10).
+
                                     desired_speed_modifier_percent = random.uniform(-30.0, 10.0)
                                     traffic_manager.vehicle_percentage_speed_difference(vehicle, desired_speed_modifier_percent)
                                     
-                                    # Optional: Customize how much they ignore vehicles/walkers/lights
-                                    # traffic_manager.ignore_vehicles_percentage(vehicle, random.uniform(0, 10)) # 0-10% chance to ignore other vehicles
-                                    # traffic_manager.ignore_lights_percentage(vehicle, random.uniform(0, 5))   # 0-5% chance to ignore red lights
-                                    # traffic_manager.ignore_walkers_percentage(vehicle, random.uniform(0, 20)) # 0-20% chance to ignore walkers
+
 
                                     vehicles_actors_master_list.append(vehicle)
-                                    # print(f"Spawned vehicle {vehicle.id} ({vehicle.type_id}) with speed diff {desired_speed_modifier_percent:.1f}%")
-                                # else:
-                                    # print(f"Failed to spawn vehicle at {spawn_point.location}")
+
             print(f"Successfully spawned {len(vehicles_actors_master_list)} vehicles.")
 
 
