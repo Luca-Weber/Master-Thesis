@@ -13,6 +13,7 @@ The repository is organized as follows:
 - `model_output_xmls.py`: Generates XML files from the model's output, to faciliate comparison with other datasets
 - `utils.py`: A collection of utility functions for training the model 
 - `map_pre_old.py`: Map and agent-data preprocessing class
+-  simulator.py contains the code to generate synthetic CARLA scenarios and saves them in the Commonroad XML format
 
 
 ![Model architecture and Training procedure](MA/arc.png)
