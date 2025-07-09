@@ -5,7 +5,7 @@ import os
 import torch
 from torch.utils.data import Dataset, DataLoader
 
-### Helper Functions (Copied from your WV - assumed correct)
+
 
 def transform_segment_to_ego_perspective(obstacles, start, num_timesteps, obs_len):
     """
@@ -487,8 +487,6 @@ if __name__ == "__main__":
     os.makedirs(dummy_xml_dir, exist_ok=True)
     dummy_xml_path = os.path.join(dummy_xml_dir, 'dummy_scenario_merged_01.xml')
 
-    # Create a slightly more complex dummy XML to better test multi-ego and single-ego
-    # if not os.path.exists(dummy_xml_path) or True: # Force recreate
     root = ET.Element("snapshot")
     lanelet_elem = ET.SubElement(root, "lanelet", id="lane1")
     lb, rb = ET.SubElement(lanelet_elem, "leftBound"), ET.SubElement(lanelet_elem, "rightBound")
